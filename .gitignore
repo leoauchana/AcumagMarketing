@@ -1,0 +1,13 @@
+# Rider / IntelliJ
+.idea/
+
+# Visual Studio
+.vs/
+*.vsidx
+
+# .NET
+bin/
+obj/
+
+# Logs
+*.log
