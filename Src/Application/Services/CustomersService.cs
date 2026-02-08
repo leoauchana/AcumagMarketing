@@ -1,36 +1,62 @@
 using Application.DTOs;
+using Application.Exceptions;
 using Application.Interfaces;
+using Domain.Entities;
+using Domain.Interfaces;
+using Domain.ValueObjects;
 
 namespace Application.Services;
 
 public class CustomersService : ICustomersService
 {
-    public CustomersService()
+    private readonly IRepository _repository;
+
+    public CustomersService(IRepository repository)
     {
-        
-    }
-    public Task<IEnumerable<CustomerDto.Response>> GetAllCustomers()
-    {
-        throw new NotImplementedException();
+        _repository = repository;
     }
 
-    public Task<CustomerDto.Response?> GetCustomerById(string id)
+    public async Task<IEnumerable<CustomerDto.Response>> GetAllCustomers()
     {
-        throw new NotImplementedException();
+        var customers = await _repository.GetAll<Customer>();
+        if (!(customers.Count > 0)) return [];
+        return customers.Select(c => new CustomerDto.Response()).ToList();
     }
 
-    public Task<CustomerDto.Response?> Create(CustomerDto.Request customerDto)
+    public async Task<CustomerDto.Response?> GetCustomerById(string id)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrEmpty(id) || !(Guid.TryParse(id, out Guid idCustomer)))
+            throw new FormatInvalidException("The id is invalid");
+        var customer = await _repository.GetForId<Customer>(idCustomer);
+        if (customer == null) throw new EntityNotFoundException($"The customer with id {idCustomer} was not found");
+        return new CustomerDto.Response();
     }
 
-    public Task<CustomerDto.Response?> Update(CustomerDto.Request customerDto)
+    public async Task<CustomerDto.Response?> Create(CustomerDto.Request customerDto)
     {
-        throw new NotImplementedException();
+        var newCustomer = new Customer(customerDto.firstName, customerDto.lastName, Email.Create(customerDto.email),
+            Dni.Create(customerDto.dni), new Domicilie(customerDto.street, customerDto.city,
+                customerDto.number, customerDto.zipCode), customerDto.phoneNumber);
+        await _repository.Add(newCustomer);
+        return new CustomerDto.Response();
     }
 
-    public Task Delete(string id)
+    public async Task<CustomerDto.Response?> Update(CustomerDto.RequestUpdate customerDto)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrEmpty(customerDto.id) || !(Guid.TryParse(customerDto.id, out Guid idCustomer)))
+            throw new FormatInvalidException("The id is invalid");
+        var customerToUpdate = await _repository.GetForId<Customer>(idCustomer);
+        if (customerToUpdate == null) throw new EntityNotFoundException($"The customer with id {idCustomer} was not found");
+        await _repository.Update<Customer>(customerToUpdate);
+        return new CustomerDto.Response();
+    }
+
+    public async Task Delete(string id)
+    {
+        if (string.IsNullOrEmpty(id) || !(Guid.TryParse(id, out Guid idCustomer)))
+            throw new FormatInvalidException("The id is invalid");
+        var customerToDelete = await _repository.GetForId<Customer>(idCustomer);
+        if (customerToDelete == null) throw new EntityNotFoundException($"The customer with id {idCustomer} was not found");
+        await _repository.Delete<Customer>(customerToDelete);
     }
 }
