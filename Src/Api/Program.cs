@@ -2,8 +2,14 @@ using Api.Middlewares;
 using Application;
 using Data;
 using Transversal;
+using Transversal.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOptions<JwtOptions>()
+    .Bind(builder.Configuration.GetSection(JwtOptions.Section))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddApplicationServices();

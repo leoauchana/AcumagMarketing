@@ -6,6 +6,7 @@ public class User : EntityBase
 {
     public string Username { get; private set; }
     public string Password { get; private set; }
+    public Employee Employee { get; private set; }
 
     public User(string userName, string password)
     {
