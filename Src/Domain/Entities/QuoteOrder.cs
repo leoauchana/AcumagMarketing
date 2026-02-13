@@ -13,6 +13,7 @@ public class QuoteOrder : EntityBase
     public Employee Employee { get; private set; }
     public Guid EmployeeId { get; private set; }
     public QuoteState QuoteState { get; private set; }
+    public Quote Quote { get; private set; }
 
     public QuoteOrder(string path, Document document, Customer customer, Employee employee, QuoteState quoteState)
     {
@@ -25,4 +26,9 @@ public class QuoteOrder : EntityBase
         EmployeeId = employee.Id;
         QuoteState = quoteState;
     }
+
+    public QuoteOrder()
+    { }
+
+    public void AddQuote(Quote quote) =>  Quote = quote;
 }
