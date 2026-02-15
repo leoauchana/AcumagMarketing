@@ -8,6 +8,8 @@ public class Employee : Person
     public Guid RoleId { get; private set; }
     public User User { get; private set; }
     public Guid UserId { get; private set; }
+    private readonly List<QuoteOrder> _orders = new();
+    public IReadOnlyCollection<QuoteOrder> QuoteOrders => _orders;
 
     public Employee()
     {

@@ -55,22 +55,12 @@ public class AcumagContext : DbContext
                     .HasColumnType("varchar")
                     .HasMaxLength(30)
                     .IsRequired();
-            });
-        });
-        modelBuilder.Entity<Customer>(a =>
-        {
-            a.OwnsOne(d => d.Domicilie, dom =>
-            {
+
                 dom.Property(d => d.Street)
                     .HasColumnType("varchar")
                     .HasMaxLength(30)
                     .IsRequired();
-            });
-        });
-        modelBuilder.Entity<Customer>(a =>
-        {
-            a.OwnsOne(d => d.Domicilie, dom =>
-            {
+
                 dom.Property(d => d.Number)
                     .HasColumnType("int")
                     .IsRequired();
@@ -115,22 +105,12 @@ public class AcumagContext : DbContext
                     .HasColumnType("varchar")
                     .HasMaxLength(30)
                     .IsRequired();
-            });
-        });
-        modelBuilder.Entity<Employee>(a =>
-        {
-            a.OwnsOne(d => d.Domicilie, dom =>
-            {
+
                 dom.Property(d => d.Street)
                     .HasColumnType("varchar")
                     .HasMaxLength(30)
                     .IsRequired();
-            });
-        });
-        modelBuilder.Entity<Employee>(a =>
-        {
-            a.OwnsOne(d => d.Domicilie, dom =>
-            {
+
                 dom.Property(d => d.Number)
                     .HasColumnType("int")
                     .IsRequired();
@@ -221,13 +201,13 @@ public class AcumagContext : DbContext
             .IsRequired();
         modelBuilder.Entity<QuoteOrder>()
             .HasOne(qr => qr.Customer)
-            .WithOne()
-            .HasForeignKey<QuoteOrder>(qr => qr.CustomerId)
+            .WithMany(c => c.QuoteOrders)
+            .HasForeignKey(qr => qr.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<QuoteOrder>()
             .HasOne(qr => qr.Employee)
-            .WithOne()
-            .HasForeignKey<QuoteOrder>(qr => qr.EmployeeId)
+            .WithMany(e => e.QuoteOrders)
+            .HasForeignKey(qr => qr.EmployeeId)
             .OnDelete(DeleteBehavior.Restrict);
     }
     private void DocumentConfig(ModelBuilder modelBuilder)
