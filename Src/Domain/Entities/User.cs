@@ -8,6 +8,10 @@ public class User : EntityBase
     public string Password { get; private set; }
     public Employee Employee { get; private set; }
 
+    public User()
+    {
+    }
+
     public User(string userName, string password)
     {
         Username = userName;

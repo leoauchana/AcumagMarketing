@@ -14,10 +14,10 @@ builder.Services.AddOptions<DatabaseOptions>()
     .Bind(builder.Configuration.GetSection(DatabaseOptions.Section))
     .ValidateDataAnnotations()
     .ValidateOnStart();
-builder.Services.AddOptions<CorsOptions>()
-    .Bind(builder.Configuration.GetSection(CorsOptions.Section))
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+// builder.Services.AddOptions<CorsOptions>()
+//     .Bind(builder.Configuration.GetSection(CorsOptions.Section))
+//     .ValidateDataAnnotations()
+//     .ValidateOnStart();
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddApplicationServices();

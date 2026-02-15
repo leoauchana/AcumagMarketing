@@ -11,7 +11,11 @@ public abstract class Person : EntityBase
     public Dni Dni { get; private set; }
     public Domicilie Domicilie { get; private set; }
 
-    protected Person(string  firstName, string lastName, Email email, Dni dni, Domicilie domicilie)
+    protected Person()
+    {
+    }
+
+    protected Person(string firstName, string lastName, Email email, Dni dni, Domicilie domicilie)
     {
         FirstName = firstName;
         LastName = lastName;

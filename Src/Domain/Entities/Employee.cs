@@ -9,8 +9,13 @@ public class Employee : Person
     public User User { get; private set; }
     public Guid UserId { get; private set; }
 
-    public Employee(string firstName, string lastName, Email email, Dni dni, Domicilie domicilie, Role role, User user) : base(firstName, lastName,
-        email, dni, domicilie)
+    public Employee()
+    {
+    }
+
+    public Employee(string firstName, string lastName, Email email, Dni dni, Domicilie domicilie, Role role, User user)
+        : base(firstName, lastName,
+            email, dni, domicilie)
     {
         Role = role;
         RoleId = role.Id;

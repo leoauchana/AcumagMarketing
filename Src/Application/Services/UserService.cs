@@ -30,7 +30,7 @@ public class UserService : IUserService
         throw new NotImplementedException();
     }
 
-    public Task<UserDto.Response> Delete(UserDto.Request userDto)
+    public Task<UserDto.Response> Delete(string id)
     {
         throw new NotImplementedException();
     }

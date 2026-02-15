@@ -5,9 +5,9 @@ namespace Domain.Entities;
 
 public class QuoteOrder : EntityBase
 {
-    public DateOnly Date { get; private set; }
-    public Document Document { get; private set; }
-    public Guid DocumentId { get; private set; }
+    public DateOnly PresentationDate { get; private set; }
+    private readonly List<Document> _documents = new();
+    public IReadOnlyCollection<Document> Documents => _documents;
     public Customer Customer { get; private set; }
     public Guid CustomerId { get; private set; }
     public Employee Employee { get; private set; }
@@ -15,11 +15,9 @@ public class QuoteOrder : EntityBase
     public QuoteState QuoteState { get; private set; }
     public Quote Quote { get; private set; }
 
-    public QuoteOrder(string path, Document document, Customer customer, Employee employee, QuoteState quoteState)
+    public QuoteOrder(string path, Customer customer, Employee employee, QuoteState quoteState)
     {
-        Date = new DateOnly();
-        Document = document;
-        DocumentId = document.Id;
+        PresentationDate = new DateOnly();
         Customer = customer;
         CustomerId = customer.Id;
         Employee = employee;
@@ -28,7 +26,9 @@ public class QuoteOrder : EntityBase
     }
 
     public QuoteOrder()
-    { }
+    {
+    }
 
-    public void AddQuote(Quote quote) =>  Quote = quote;
+    public void AddQuote(Quote quote) => Quote = quote;
+    public void AddDocument(Document document) => _documents.Add(document);
 }

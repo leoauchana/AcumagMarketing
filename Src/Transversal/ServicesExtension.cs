@@ -11,6 +11,7 @@ public static class ServicesExtension
     {
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddScoped<ClaimsFactory>();
         services.AddScoped<JwtOptions>();
         services.AddScoped<DatabaseOptions>();
         services.AddScoped<CorsOptions>();

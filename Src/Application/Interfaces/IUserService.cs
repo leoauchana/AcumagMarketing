@@ -8,5 +8,5 @@ public interface IUserService
     Task<List<UserDto.Response>> GetAll();
     Task<UserDto.Response> Create(UserDto.Request userDto);
     Task<UserDto.Response> Update(UserDto.Request userDto);
-    Task<UserDto.Response> Delete(UserDto.Request userDto);
+    Task<UserDto.Response> Delete(string id);
 }
