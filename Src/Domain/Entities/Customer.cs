@@ -16,4 +16,10 @@ public class Customer : Person
     {
         PhoneNumber = phoneNumber;
     }
+    public void Update(string? firstName, string? lastName,
+        string? phoneNumber)
+    {
+        UpdatePerson(firstName, lastName);
+        PhoneNumber = phoneNumber;
+    }
 }

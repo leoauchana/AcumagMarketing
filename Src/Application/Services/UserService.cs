@@ -1,15 +1,18 @@
 using Application.DTOs;
 using Application.Interfaces;
 using Domain.Interfaces;
+using Transversal.Interfaces;
 
 namespace Application.Services;
 
 public class UserService : IUserService
 {
     private readonly IRepository _repository;
-    public UserService(IRepository repository)
+    private readonly IPasswordHasher _passwordHasher;
+    public UserService(IRepository repository, IPasswordHasher passwordHasher)
     {
         _repository = repository;
+        _passwordHasher = passwordHasher;
     }
 
     public Task<UserDto.Response> GetById(string id)

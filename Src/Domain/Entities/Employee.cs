@@ -24,4 +24,5 @@ public class Employee : Person
         User = user;
         UserId = user.Id;
     }
+    public void UpdateRole(Role role) => Role = role;
 }

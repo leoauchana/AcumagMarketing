@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,5 +12,11 @@ public class QuoteController : ControllerBase
     public QuoteController(IQuoteService quoteService)
     {
         _quoteService = quoteService;
+    }
+    [HttpPost]
+    public async Task<IActionResult> Register([FromBody] QuoteDto.Request newQuote)
+    {
+        var quote = await _quoteService.Register(newQuote);
+        return Ok(quote);
     }
 }

@@ -23,4 +23,9 @@ public abstract class Person : EntityBase
         Dni = dni;
         Domicilie = domicilie;
     }
+    protected void UpdatePerson(string firstName, string lastName)
+    {
+        FirstName = firstName;
+        LastName = lastName;
+    }
 }

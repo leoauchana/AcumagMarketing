@@ -4,5 +4,5 @@ namespace Application.Interfaces;
 
 public interface IAuthService
 {
-    Task<EmployeeDto.Response> Login(AuthDto.Login authDto);
+    Task<AuthDto.Response> Login(AuthDto.Login authDto);
 }

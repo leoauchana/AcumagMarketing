@@ -1,6 +1,7 @@
 using Application.DTOs;
 using Application.Exceptions;
 using Application.Interfaces;
+using Application.Shared;
 using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
@@ -18,47 +19,57 @@ public class EmployeeService : IEmployeeService
         _passwordHasher = passwordHasher;
     }
 
-public async Task<IEnumerable<EmployeeDto.Response>> GetAllEmployees()
+    public async Task<IEnumerable<EmployeeDto.Response>> GetAllEmployees()
     {
         var employees = await _repository.GetAll<Employee>();
         if (!(employees.Count > 0)) return [];
-        return employees.Select(c => new EmployeeDto.Response("","","","")).ToList();
+        return employees.Select(e => new EmployeeDto.Response(e.Id.ToString(), e.FirstName, e.LastName, e.Email.Value, e.Dni.Value,
+            e.Domicilie.City, e.Domicilie.Street, e.Domicilie.Number, e.Role.Name)).ToList();
     }
 
     public async Task<EmployeeDto.Response?> GetEmployeeById(string id)
     {
-        if (string.IsNullOrEmpty(id) || !(Guid.TryParse(id, out Guid idEmployee)))
-            throw new FormatInvalidException("The id is invalid");
-        var employee = await _repository.GetForId<Customer>(idEmployee);
+        var idEmployee = id.ValidateId();
+        var employee = await _repository.GetForId<Employee>(idEmployee);
         if (employee == null) throw new EntityNotFoundException($"The customer with id {idEmployee} was not found");
-        return new EmployeeDto.Response("", "", "", "");
+        return new EmployeeDto.Response(employee.Id.ToString(), employee.FirstName, employee.LastName, employee.Email.Value, employee.Dni.Value,
+            employee.Domicilie.City, employee.Domicilie.Street, employee.Domicilie.Number, employee.Role.Name);
     }
 
     public async Task<EmployeeDto.Response?> Create(EmployeeDto.Request employeeDto)
     {
-        // var newEmployee = new Customer(customerDto.firstName, customerDto.lastName, Email.Create(customerDto.email),
-        //     Dni.Create(customerDto.dni), new Domicilie(customerDto.street, customerDto.city,
-        //         customerDto.number, customerDto.zipCode), customerDto.phoneNumber);
-        // await _repository.Add(newEmployee);
-        return new EmployeeDto.Response("", "", "", "");
+        var employeeFound = await _repository.GetTheFirstOne<Employee>(e => e.Email.Value.Equals(employeeDto.email) || e.Dni.Value.Equals(employeeDto.dni));
+        if (employeeFound == null) throw new BusinessConflictException("The email or dni already exists");
+        if (!(Guid.TryParse(employeeDto.idRole, out var idRolee))) throw new FormatInvalidException("The id is invalid");
+        var roleFound = await _repository.GetForId<Role>(idRolee);
+        if (roleFound == null) throw new BusinessConflictException("The role is not exists");
+        var newEmployee = new Employee(employeeDto.firstName, employeeDto.lastName, Email.Create(employeeDto.email),
+            Dni.Create(employeeDto.dni), new Domicilie(employeeDto.street, employeeDto.city,
+                employeeDto.number, employeeDto.zipCode), roleFound, new User(employeeDto.userName, employeeDto.password));
+        await _repository.Add(newEmployee);
+        return new EmployeeDto.Response(newEmployee.Id.ToString(), newEmployee.FirstName, newEmployee.LastName, newEmployee.Email.Value, newEmployee.Dni.Value,
+            newEmployee.Domicilie.City, newEmployee.Domicilie.Street, newEmployee.Domicilie.Number, newEmployee.Role.Name);
     }
 
     public async Task<EmployeeDto.Response?> Update(EmployeeDto.RequestUpdate employeeDto)
     {
-        // if (string.IsNullOrEmpty(employeeDto.id) || !(Guid.TryParse(employeeDto.id, out Guid idCustomer)))
-        //     throw new FormatInvalidException("The id is invalid");
-        // var employeeToUpdate = await _repository.GetForId<Customer>(idEmployee);
-        // if (employeeToUpdate == null) throw new EntityNotFoundException($"The customer with id {idCustomer} was not found");
-        // await _repository.Update<Customer>(employeeToUpdate);
-        return new EmployeeDto.Response("", "", "", "");
+        var idEmployee = employeeDto.id.ValidateId();
+        var employeeToUpdate = await _repository.GetForId<Employee>(idEmployee, nameof(Role));
+        if (employeeToUpdate == null) throw new EntityNotFoundException($"The employee with id {idEmployee} was not found");
+        if (!(Guid.TryParse(employeeDto.idRole, out var idRolee))) throw new FormatInvalidException("The id is invalid");
+        var roleFound = await _repository.GetForId<Role>(idRolee);
+        if (roleFound == null) throw new BusinessConflictException("The role is not exists");
+        employeeToUpdate.UpdateRole(roleFound);
+        await _repository.Update(employeeToUpdate);
+        return new EmployeeDto.Response(employeeToUpdate.Id.ToString(), employeeToUpdate.FirstName, employeeToUpdate.LastName, employeeToUpdate.Email.Value, employeeToUpdate.Dni.Value,
+            employeeToUpdate.Domicilie.City, employeeToUpdate.Domicilie.Street, employeeToUpdate.Domicilie.Number, employeeToUpdate.Role.Name);
     }
 
     public async Task Delete(string id)
     {
-        if (string.IsNullOrEmpty(id) || !(Guid.TryParse(id, out Guid idEmployee)))
-            throw new FormatInvalidException("The id is invalid");
+        var idEmployee = id.ValidateId();
         var employeeToDelete = await _repository.GetForId<Employee>(idEmployee);
         if (employeeToDelete == null) throw new EntityNotFoundException($"The customer with id {idEmployee} was not found");
-        await _repository.Delete<Employee>(employeeToDelete);
+        await _repository.Delete(employeeToDelete);
     }
 }
