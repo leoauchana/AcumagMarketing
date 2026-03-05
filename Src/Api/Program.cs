@@ -19,6 +19,10 @@ builder.Services.AddOptions<CorsOptions>()
     .Bind(builder.Configuration.GetSection(CorsOptions.Section))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+builder.Services.AddOptions<FileStorageOptions>()
+    .Bind(builder.Configuration.GetSection(FileStorageOptions.Section))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddApplicationServices();
@@ -37,8 +41,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-app.UseHttpsRedirection();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 app.Run();

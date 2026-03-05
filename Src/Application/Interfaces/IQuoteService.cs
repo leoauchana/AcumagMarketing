@@ -4,9 +4,9 @@ namespace Application.Interfaces;
 
 public interface IQuoteService
 {
-    Task Register(QuoteDto.Request quoteDto);
-    Task<QuoteDto.Response> GetById(string id);
-    Task<QuoteDto.Response> Update(QuoteDto.RequestUpdate quoteDto);
-    Task<QuoteDto.Response> Delete(string id);
-    Task<QuoteDto.Response> GetAll();
+    Task<QuoteOrderDto.Response> Register(QuoteOrderDto.RequestStream quoteDto, string idUser);
+    Task<QuoteOrderDto.Response> GetById(string id);
+    Task<QuoteOrderDto.Response> Update(QuoteOrderDto.RequestUpdate quoteDto);
+    Task Delete(string id);
+    Task<List<QuoteOrderDto.Response>> GetAll();
 }

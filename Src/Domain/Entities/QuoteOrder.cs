@@ -15,9 +15,9 @@ public class QuoteOrder : EntityBase
     public QuoteState QuoteState { get; private set; }
     public Quote Quote { get; private set; }
 
-    public QuoteOrder(string path, Customer customer, Employee employee, QuoteState quoteState)
+    public QuoteOrder(Customer customer, Employee employee, QuoteState quoteState)
     {
-        PresentationDate = new DateOnly();
+        PresentationDate = DateOnly.FromDateTime(DateTime.Today);
         Customer = customer;
         CustomerId = customer.Id;
         Employee = employee;

@@ -5,6 +5,7 @@ using Application.Shared;
 using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
+using Microsoft.EntityFrameworkCore;
 using Transversal.Interfaces;
 
 namespace Application.Services;
@@ -21,7 +22,7 @@ public class EmployeeService : IEmployeeService
 
     public async Task<IEnumerable<EmployeeDto.Response>> GetAllEmployees()
     {
-        var employees = await _repository.GetAll<Employee>();
+        var employees = await _repository.ListAll<Employee>(nameof(Role));
         if (!(employees.Count > 0)) return [];
         return employees.Select(e => new EmployeeDto.Response(e.Id.ToString(), e.FirstName, e.LastName, e.Email.Value, e.Dni.Value,
             e.Domicilie.City, e.Domicilie.Street, e.Domicilie.Number, e.Role.Name)).ToList();
@@ -30,7 +31,7 @@ public class EmployeeService : IEmployeeService
     public async Task<EmployeeDto.Response?> GetEmployeeById(string id)
     {
         var idEmployee = id.ValidateId();
-        var employee = await _repository.GetForId<Employee>(idEmployee);
+        var employee = await _repository.GetForId<Employee>(idEmployee, nameof(Role));
         if (employee == null) throw new EntityNotFoundException($"The customer with id {idEmployee} was not found");
         return new EmployeeDto.Response(employee.Id.ToString(), employee.FirstName, employee.LastName, employee.Email.Value, employee.Dni.Value,
             employee.Domicilie.City, employee.Domicilie.Street, employee.Domicilie.Number, employee.Role.Name);
@@ -38,8 +39,10 @@ public class EmployeeService : IEmployeeService
 
     public async Task<EmployeeDto.Response?> Create(EmployeeDto.Request employeeDto)
     {
-        var employeeFound = await _repository.GetTheFirstOne<Employee>(e => e.Email.Value.Equals(employeeDto.email) || e.Dni.Value.Equals(employeeDto.dni));
-        if (employeeFound == null) throw new BusinessConflictException("The email or dni already exists");
+        var email = Email.Create(employeeDto.email);
+        var dni = Dni.Create(employeeDto.dni);
+        var employeeFound = await _repository.GetTheFirstOne<Employee>(e => e.Email == email || e.Dni == dni);
+        if (employeeFound != null) throw new BusinessConflictException("The email or dni already exists");
         if (!(Guid.TryParse(employeeDto.idRole, out var idRolee))) throw new FormatInvalidException("The id is invalid");
         var roleFound = await _repository.GetForId<Role>(idRolee);
         if (roleFound == null) throw new BusinessConflictException("The role is not exists");

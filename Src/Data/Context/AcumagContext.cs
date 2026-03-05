@@ -9,7 +9,13 @@ public class AcumagContext : DbContext
     public AcumagContext(DbContextOptions<AcumagContext> options) : base(options)
     {
     }
-
+    DbSet<User> Users { get; set; }
+    DbSet<Customer> Customers { get; set; }
+    DbSet<Employee> Employees { get; set; }
+    DbSet<Role> Roles { get; set; }
+    DbSet<Quote> Quotes { get; set; }
+    DbSet<QuoteOrder> QuotesOrder { get; set; }
+    DbSet<Document> Documents { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         CustomerConfig(modelBuilder);
@@ -46,6 +52,7 @@ public class AcumagContext : DbContext
                 value => Dni.Create(value)
             )
             .HasColumnType("varchar")
+            .HasMaxLength(9)
             .IsRequired();
         modelBuilder.Entity<Customer>(a =>
         {
@@ -75,7 +82,7 @@ public class AcumagContext : DbContext
             .HasColumnType("varchar")
             .HasMaxLength(100)
             .IsRequired();
-    } 
+    }
     private void EmployeeConfig(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Employee>()
@@ -96,6 +103,7 @@ public class AcumagContext : DbContext
                 value => Dni.Create(value)
             )
             .HasColumnType("varchar")
+            .HasMaxLength(9)
             .IsRequired();
         modelBuilder.Entity<Employee>(a =>
         {
@@ -218,18 +226,6 @@ public class AcumagContext : DbContext
         modelBuilder.Entity<Document>()
             .Property(d => d.Name)
             .HasMaxLength(50)
-            .IsRequired();
-        modelBuilder.Entity<Document>()
-            .Property(d => d.Path)
-            .HasMaxLength(100)
-            .IsRequired();
-        modelBuilder.Entity<Document>()
-            .Property(d => d.Size)
-            .HasColumnType("float")
-            .IsRequired();
-        modelBuilder.Entity<Document>()
-            .Property(d => d.Type)
-            .HasMaxLength(10)
             .IsRequired();
         modelBuilder.Entity<Document>()
             .HasOne(d => d.QuoteOrder)

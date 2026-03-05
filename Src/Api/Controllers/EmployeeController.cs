@@ -22,14 +22,14 @@ public class EmployeeController : ControllerBase
         return Ok(employeeCreated);
     }
 
-    [HttpGet("/getAll")]
+    [HttpGet("getAll")]
     public async Task<IActionResult> GetAll()
     {
         var employees = await _employeeService.GetAllEmployees();
         return Ok(employees);
     }
 
-    [HttpGet("/getById/{id}")]
+    [HttpGet("getById/{id}")]
     public async Task<IActionResult> GetById(string id)
     {
         var employeeFound = await _employeeService.GetEmployeeById(id);
@@ -43,7 +43,7 @@ public class EmployeeController : ControllerBase
         return Ok(employeeUpdated);
     }
 
-    [HttpDelete("/{id}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
         await _employeeService.GetAllEmployees();
