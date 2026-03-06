@@ -5,7 +5,6 @@ using Application.Shared;
 using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
 using Transversal.Interfaces;
 
 namespace Application.Services;
@@ -20,7 +19,7 @@ public class EmployeeService : IEmployeeService
         _passwordHasher = passwordHasher;
     }
 
-    public async Task<IEnumerable<EmployeeDto.Response>> GetAllEmployees()
+    public async Task<List<EmployeeDto.Response>> GetAllEmployees()
     {
         var employees = await _repository.ListAll<Employee>(nameof(Role));
         if (!(employees.Count > 0)) return [];
