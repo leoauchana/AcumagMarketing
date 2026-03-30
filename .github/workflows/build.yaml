@@ -1,0 +1,28 @@
+name: Acumag
+
+on:
+  pull_request:
+    branches: [ "dev" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-tests:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+        
+      - name: Restore dependencies
+        run: dotnet restore AcumagMarketing.sln
+
+      - name: Build solution
+        run: dotnet build AcumagMarketing.sln --configuration Debug --no-restore
+
+      - name: Run tests
+        run: dotnet test Src/Tests/ --configuration Debug --no-build --verbosity normal

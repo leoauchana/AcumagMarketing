@@ -5,5 +5,11 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\Transversal\Transversal.csproj" />
+        <ProjectReference Include="..\Data\Data.csproj" />
+        <ProjectReference Include="..\Domain\Domain.csproj" />
+    </ItemGroup>
 
 </Project>
