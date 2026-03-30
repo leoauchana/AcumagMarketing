@@ -2,7 +2,7 @@ name: Acumag
 
 on:
   pull_request:
-    branches: [main]
+    branches: [dev]
 
 jobs:
   build-and-tests:
