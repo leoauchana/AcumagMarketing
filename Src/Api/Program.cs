@@ -1,7 +1,6 @@
 using Api.Middlewares;
 using Application;
 using Data;
-using Microsoft.Extensions.Options;
 using Transversal;
 using Transversal.Configurations;
 
