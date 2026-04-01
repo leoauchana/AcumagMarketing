@@ -19,28 +19,36 @@ public class EmployeeController : ControllerBase
     public async Task<IActionResult> Create([FromBody] EmployeeDto.Request employeeDto)
     {
         var employeeCreated = await _employeeService.Create(employeeDto);
-        return Ok(employeeCreated);
+        return Ok(
+            new
+            { newEmployee = employeeCreated });
     }
 
     [HttpGet("getAll")]
     public async Task<IActionResult> GetAll()
     {
         var employees = await _employeeService.GetAllEmployees();
-        return Ok(employees);
+        return Ok(new
+        {
+            employees = employees,
+            count = employees.Count
+        });
     }
 
     [HttpGet("getById/{id}")]
     public async Task<IActionResult> GetById(string id)
     {
         var employeeFound = await _employeeService.GetEmployeeById(id);
-        return Ok(employeeFound);
+        return Ok(new
+        { employeeFound = employeeFound });
     }
 
     [HttpPatch]
     public async Task<IActionResult> Update([FromBody] EmployeeDto.RequestUpdate employeeDto)
     {
         var employeeUpdated = await _employeeService.Update(employeeDto);
-        return Ok(employeeUpdated);
+        return Ok(
+            new { employeeUpdated = employeeUpdated });
     }
 
     [HttpDelete("{id}")]

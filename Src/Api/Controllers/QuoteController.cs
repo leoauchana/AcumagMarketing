@@ -18,10 +18,10 @@ public class QuoteController : ControllerBase
     public async Task<IActionResult> Register([FromForm] QuoteOrderDto.RequestFormFile newQuote)
     {
         var idUser = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-        if(idUser == null) return BadRequest("User can not getter");
+        if (idUser == null) return BadRequest("User can not getter");
         var quoteDto = new QuoteOrderDto.RequestStream(newQuote.quoteFile.OpenReadStream(), newQuote.quoteFile.FileName, newQuote.quoteFile.ContentType
-            ,newQuote.idCustomer);
+            , newQuote.idCustomer);
         var quote = await _quoteService.Register(quoteDto, idUser);
-        return Ok(quote);
+        return Ok(new { quoteRegistered = quote });
     }
 }

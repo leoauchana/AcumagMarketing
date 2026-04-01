@@ -18,6 +18,6 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] AuthDto.Login authDto)
     {
         var employee = await _authService.Login(authDto);
-        return Ok(employee);
+        return Ok(new { employeeFound = employee });
     }
 }

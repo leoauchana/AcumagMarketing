@@ -18,31 +18,35 @@ public class CustomerController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var customers = await _customers.GetAllCustomers();
-        return Ok(customers);
+        return Ok(new
+        {
+            customers = customers,
+            count = customers.Count()
+        });
     }
     [HttpGet("/getById/{id}")]
     public async Task<IActionResult> GetById(string id)
     {
         var customer = await _customers.GetCustomerById(id);
-        return Ok(customer);
+        return Ok(new { customerFound = customer });
     }
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CustomerDto.Request customerDto)
     {
         var customer = await _customers.Create(customerDto);
-        return Ok(customer);
+        return Ok(new { newCustomer = customer });
     }
-    
+
     [HttpDelete("/{id}")]
     public async Task<IActionResult> Delete(string id)
-    { 
+    {
         await _customers.Delete(id);
         return Ok("The customer was successfully deleted.");
     }
     [HttpPatch]
-    public async Task<IActionResult> Create([FromBody] CustomerDto.RequestUpdate customerDto)
+    public async Task<IActionResult> Update([FromBody] CustomerDto.RequestUpdate customerDto)
     {
         var customer = await _customers.Update(customerDto);
-        return Ok(customer);
+        return Ok(new { customerUpdated = customer });
     }
 }
