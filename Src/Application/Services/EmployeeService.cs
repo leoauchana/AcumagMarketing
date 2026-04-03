@@ -42,7 +42,7 @@ public class EmployeeService : IEmployeeService
         var dni = Dni.Create(employeeDto.dni);
         var employeeFound = await _repository.GetTheFirstOne<Employee>(e => e.Email == email || e.Dni == dni);
         if (employeeFound != null) throw new BusinessConflictException("The email or dni already exists");
-        if (!(Guid.TryParse(employeeDto.idRole, out var idRolee))) throw new FormatInvalidException("The id is invalid");
+        var idRolee = employeeDto.idRole.ValidateId();
         var roleFound = await _repository.GetForId<Role>(idRolee);
         if (roleFound == null) throw new BusinessConflictException("The role is not exists");
         var newEmployee = new Employee(employeeDto.firstName, employeeDto.lastName, Email.Create(employeeDto.email),

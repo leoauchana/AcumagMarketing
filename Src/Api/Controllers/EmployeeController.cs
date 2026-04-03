@@ -55,7 +55,7 @@ public class EmployeeController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
-        await _employeeService.GetAllEmployees();
+        await _employeeService.Delete(id);
         return Ok("Employee successfully deleted");
     }
 }

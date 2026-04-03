@@ -5,139 +5,347 @@ using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using NSubstitute;
+using NSubstitute.ReturnsExtensions;
 using System.Linq.Expressions;
 using Transversal.Interfaces;
+
 namespace Tests.ApplicationTests;
 
-public class EmployeeServiceTest
+public class EmployeeServiceTests
 {
     private readonly IRepository _repository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly EmployeeService _employeeService;
-    public EmployeeServiceTest()
+
+    private readonly Guid _validId = Guid.NewGuid();
+    private readonly Role _fakeRole;
+    private readonly Employee _fakeEmployee;
+
+    public EmployeeServiceTests()
     {
         _repository = Substitute.For<IRepository>();
         _passwordHasher = Substitute.For<IPasswordHasher>();
-
         _employeeService = new EmployeeService(_repository, _passwordHasher);
+
+        _fakeRole = new Role("admin", "Administrador del sistema");
+
+        _fakeEmployee = new Employee(
+            "Juan", "Pérez",
+            Email.Create("juan@mail.com"),
+            Dni.Create("12345678"),
+            new Domicilie("Mitre", "Tucumán", 100, "4000"),
+            _fakeRole,
+            new User("admin1", "admin123")
+        );
     }
+
+    // ══════════════════════════════════════════════
+    //  GetAllEmployees  (CC = 2)
+    // ══════════════════════════════════════════════
+
     [Fact]
-    public async Task GetAllEmployees_WhenGetAllEmployees_AndExistingACount_ThenReturnAListWithTheEmployees()
+    public async Task GetAllEmployees_WhenNoEmployeesExist_ReturnsEmptyList()
     {
-        //Arrange   
-        var responseRepo = new List<Employee>()
-        {
-            new Employee("Juan", "Perez", Email.Create("juan@gmail.com"), Dni.Create("45478412"), new Domicilie("Av Sarmiento", "San Miguel",
-            4000, "4000"), new Role("admin","Administrador del sistema"), new User("admin1", "admin123"))
-        };
-        var responseDto = new List<EmployeeDto.Response>()
-        {
-            new EmployeeDto.Response("3496214C-E2D3-412A-977D-86E53F6BA7F1","Juan", "Perez", "juan@gmail.com", "45478412", "San Miguel", "Av Sarmiento",
-            4000, "admin")
-        };
+        // Arrange
         _repository.ListAll<Employee>(nameof(Role))
-            .Returns(Task.FromResult(responseRepo));
-        //Act
-        List<EmployeeDto.Response> responseList = await _employeeService.GetAllEmployees();
-        //Asert
+            .Returns(new List<Employee>());
+
+        // Act
+        var result = await _employeeService.GetAllEmployees();
+
+        // Assert
+        Assert.Empty(result);
         await _repository.Received(1).ListAll<Employee>(nameof(Role));
-        Assert.NotNull(responseList);
-        Assert.Equal(responseDto.Count, responseList.Count);
-        Assert.Equal(responseDto, responseList,
-            (expected, actual) => expected.fisrtName.Equals(actual.fisrtName));
     }
-    [Fact]
-    public async Task GetById_WhenGetEmployeeById_AndExisting_ThenReturnTheEmployees()
-    {
-        //Arrange   
-        string id = "3496214C-E2D3-412A-977D-86E53F6BA7F1";
-        var responseRepo = new Employee("Juan", "Perez", Email.Create("juan@gmail.com"), Dni.Create("45478412"), new Domicilie("Av Sarmiento", "San Miguel",
-            4000, "4000"), new Role("admin", "Administrador del sistema"), new User("admin1", "admin123"));
-        var responseDto = new EmployeeDto.Response("3496214C-E2D3-412A-977D-86E53F6BA7F1", "Juan", "Perez", "juan@gmail.com", "45478412", "San Miguel", "Av Sarmiento",
-            4000, "admin");
 
-        _repository.GetForId<Employee>(Guid.Parse(id), nameof(Role))!
-            .Returns(Task.FromResult(responseRepo));
-        //Act
-        var responseEmployee = await _employeeService.GetEmployeeById(id);
-        //Asert
-        await _repository.Received(1).GetForId<Employee>(Arg.Any<Guid>(), nameof(Role));
-        Assert.NotNull(responseEmployee);
-        Assert.Equal(responseDto, responseEmployee,
-            (expected, actual) => expected.dni == actual.dni);
+    [Fact]
+    public async Task GetAllEmployees_WhenEmployeesExist_ReturnsMappedDtos()
+    {
+        // Arrange
+        _repository.ListAll<Employee>(nameof(Role))
+            .Returns(new List<Employee> { _fakeEmployee });
+
+        // Act
+        var result = await _employeeService.GetAllEmployees();
+
+        // Assert
+        Assert.Single(result);
+        var dto = result.First();
+        Assert.Equal(_fakeEmployee.FirstName, dto.fisrtName);
+        Assert.Equal(_fakeEmployee.LastName, dto.lastName);
+        Assert.Equal(_fakeEmployee.Email.Value, dto.email);
+        Assert.Equal(_fakeEmployee.Role.Name, dto.role);
+        await _repository.Received(1).ListAll<Employee>(nameof(Role));
     }
-    [Fact]
-    public async Task GetById_WhenGetEmployeeById_AndNotExisting_ThenThrowEntityNotFoundException()
-    {
-        //Arrange   
-        string id = "3496214C-E2D3-412A-977D-86E53F6BA7F1";
 
-        _repository.GetForId<Employee>(Guid.Parse(id), nameof(Role))!
-            .Returns(Task.FromResult<Employee>(null!));
-        //Act & Assert
+    // ══════════════════════════════════════════════
+    //  GetEmployeeById  (CC = 3)
+    // ══════════════════════════════════════════════
+
+    [Fact]
+    public async Task GetEmployeeById_WhenIdIsInvalid_ThrowsFormatInvalidException()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<FormatInvalidException>(
+            () => _employeeService.GetEmployeeById("not-a-guid"));
+    }
+
+    [Fact]
+    public async Task GetEmployeeById_WhenEmployeeDoesNotExist_ThrowsEntityNotFoundException()
+    {
+        // Arrange
+        _repository.GetForId<Employee>(_validId, nameof(Role))
+            .ReturnsNull();
+
+        // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
-            () => _employeeService.GetEmployeeById(id));
+            () => _employeeService.GetEmployeeById(_validId.ToString()));
+
         await _repository.Received(1).GetForId<Employee>(Arg.Any<Guid>(), nameof(Role));
-        Assert.Equal("The customer with id 3496214c-e2d3-412a-977d-86e53f6ba7f1 was not found", exception.Message);
+        Assert.Contains(_validId.ToString(), exception.Message);
     }
+
     [Fact]
-    public async Task Create_WhenCreateNewEmployee_AndNotExisting_ThenReturnTheNewEmployee()
+    public async Task GetEmployeeById_WhenEmployeeExists_ReturnsMappedDto()
     {
-        //Arrange   
-        var roleFound = new Role("admin", "Administrador del sistema");
-        var requestDto = new EmployeeDto.Request("Juan", "Perez", "juan@gmail.com", "45478412", "San Miguel", "Av Sarmiento",
-            58, "4000", roleFound.Id.ToString(), "admin1", "admin123");
-        var newEmployee = new Employee("Juan", "Perez", Email.Create("juan@gmail.com"), Dni.Create("45478412"), new Domicilie("Av Sarmiento", "San Miguel",
-            58, "4000"), new Role("admin", "Administrador del sistema"), new User("admin1", "admin123"));
-        var responseDto = new EmployeeDto.Response(newEmployee.Id.ToString(), "Juan", "Perez", "juan@gmail.com", "45478412", "San Miguel", "Av Sarmiento",
-            58, "admin");
-        _repository.Add(newEmployee)
-            .Returns(Task.CompletedTask);
-        _repository.GetForId<Role>(roleFound.Id)
-            .Returns(roleFound);
-        //Act
-        var serviceResponse = await _employeeService.Create(requestDto);
-        //Asert
-        await _repository.Received(1).Add(Arg.Any<Employee>());
-        await _repository.Received(1).GetForId<Role>(Arg.Any<Guid>());
-        Assert.NotNull(serviceResponse);
-        Assert.Equal(responseDto, serviceResponse,
-            (expected, actual) => expected!.dni.Equals(actual!.dni));
+        // Arrange
+        _repository.GetForId<Employee>(_validId, nameof(Role))
+            .Returns(_fakeEmployee);
+
+        // Act
+        var result = await _employeeService.GetEmployeeById(_validId.ToString());
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(_fakeEmployee.FirstName, result!.fisrtName);
+        Assert.Equal(_fakeEmployee.Email.Value, result.email);
+        Assert.Equal(_fakeEmployee.Dni.Value, result.dni);
+        await _repository.Received(1).GetForId<Employee>(Arg.Any<Guid>(), nameof(Role));
     }
+
+    // ══════════════════════════════════════════════
+    //  Create  (CC = 4)
+    // ══════════════════════════════════════════════
+
     [Fact]
-    public async Task Create_WhenCreateNewEmployee_AndExisting_ThenThrowBusinessConflictException()
+    public async Task Create_WhenEmailOrDniAlreadyExists_ThrowsBusinessConflictException()
     {
-        //Arrange   
-        var requestDto = new EmployeeDto.Request("Juan", "Perez", "juan@gmail.com", "45478412", "San Miguel", "Av Sarmiento",
-            58, "4000", "30833CB1-6542-48C2-BB96-8B0742437616", "admin1", "admin123");
-        var employeeFound = new Employee("Juan", "Perez", Email.Create("juan@gmail.com"), Dni.Create("45478412"), new Domicilie("Av Sarmiento", "San Miguel",
-            58, "4000"), new Role("admin", "Administrador del sistema"), new User("admin1", "admin123"));
-        var email = Email.Create(requestDto.email);
-        var dni = Dni.Create(requestDto.dni);
-        _repository.GetTheFirstOne<Employee>(Arg.Any<Expression<Func<Employee, bool>>>(), Arg.Any<string[]>())!
-            .Returns(Task.FromResult(employeeFound));
-        //Act && Assert
+        // Arrange
+        var request = new EmployeeDto.Request(
+            "Juan", "Pérez", "juan@mail.com", "12345678",
+            "Tucumán", "Mitre", 100, "4000",
+            _fakeRole.Id.ToString(), "admin1", "admin123");
+
+        _repository
+            .GetTheFirstOne<Employee>(Arg.Any<Expression<Func<Employee, bool>>>())
+            .Returns(_fakeEmployee);
+
+        // Act & Assert
         var exception = await Assert.ThrowsAsync<BusinessConflictException>(
-            () => _employeeService.Create(requestDto));
-        await _repository.Received(1).GetTheFirstOne<Employee>(Arg.Any<Expression<Func<Employee, bool>>>(), Arg.Any<string[]>());
+            () => _employeeService.Create(request));
+
         Assert.Equal("The email or dni already exists", exception.Message);
+        await _repository.Received(1).GetTheFirstOne<Employee>(Arg.Any<Expression<Func<Employee, bool>>>());
     }
+
     [Fact]
-    public async Task Create_WhenCreateNewEmployeeWithARole_AndNotExistingTheRole_ThenThrowBusinessConfilctException()
+    public async Task Create_WhenRoleIdIsInvalid_ThrowsFormatInvalidException()
     {
-        //Arrange   
-        var roleFound = new Role("admin", "Administrador del sistema");
-        var requestDto = new EmployeeDto.Request("Juan", "Perez", "juan@gmail.com", "45478412", "San Miguel", "Av Sarmiento",
-            58, "4000", "63F2D270-07BC-41C8-BF76-B1461037D248", "admin1", "admin123");
-        _repository.GetTheFirstOne<Employee>(Arg.Any<Expression<Func<Employee, bool>>>(), Arg.Any<string[]>())!
-            .Returns(Task.FromResult<Employee>(null!));
-        _repository.GetForId<Role>(Guid.Parse("63F2D270-07BC-41C8-BF76-B1461037D248"))!
-            .Returns(Task.FromResult<Role>(null!));
-        //Act && Assert
+        // Arrange
+        var request = new EmployeeDto.Request(
+            "Juan", "Pérez", "juan@mail.com", "12345678",
+            "Tucumán", "Mitre", 100, "4000",
+            "not-a-guid", "admin1", "admin123");
+
+        _repository
+            .GetTheFirstOne<Employee>(Arg.Any<Expression<Func<Employee, bool>>>())
+            .ReturnsNull();
+
+        // Act & Assert
+        await _repository.Received(0).GetForId<Role>(Arg.Any<Guid>());
+        await Assert.ThrowsAsync<FormatInvalidException>(
+            () => _employeeService.Create(request));
+    }
+
+    [Fact]
+    public async Task Create_WhenRoleDoesNotExist_ThrowsBusinessConflictException()
+    {
+        // Arrange
+        var request = new EmployeeDto.Request(
+            "Juan", "Pérez", "juan@mail.com", "12345678",
+            "Tucumán", "Mitre", 100, "4000",
+            _fakeRole.Id.ToString(), "admin1", "admin123");
+
+        _repository
+            .GetTheFirstOne<Employee>(Arg.Any<Expression<Func<Employee, bool>>>())
+            .ReturnsNull();
+
+        _repository.GetForId<Role>(_fakeRole.Id)
+            .ReturnsNull();
+
+        // Act & Assert
         var exception = await Assert.ThrowsAsync<BusinessConflictException>(
-            () => _employeeService.Create(requestDto));
-        await _repository.Received(1).GetTheFirstOne<Employee>(Arg.Any<Expression<Func<Employee, bool>>>(), Arg.Any<string[]>());
+            () => _employeeService.Create(request));
+
+        Assert.Equal("The role is not exists", exception.Message);
+        await _repository.Received(1).GetForId<Role>(Arg.Any<Guid>());
+    }
+
+    [Fact]
+    public async Task Create_WhenDataIsValid_ReturnsNewEmployeeDto()
+    {
+        // Arrange
+        var request = new EmployeeDto.Request(
+            "Juan", "Pérez", "juan@mail.com", "12345678",
+            "Tucumán", "Mitre", 100, "4000",
+            _fakeRole.Id.ToString(), "admin1", "admin123");
+
+        _repository
+            .GetTheFirstOne<Employee>(Arg.Any<Expression<Func<Employee, bool>>>())
+            .ReturnsNull();
+
+        _repository.GetForId<Role>(_fakeRole.Id)
+            .Returns(_fakeRole);
+
+        // Act
+        var result = await _employeeService.Create(request);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(request.firstName, result!.fisrtName);
+        Assert.Equal(request.email, result.email);
+        Assert.Equal(request.dni, result.dni);
+        await _repository.Received(1).Add(Arg.Any<Employee>());
+    }
+
+    // ══════════════════════════════════════════════
+    //  Update  (CC = 5)
+    // ══════════════════════════════════════════════
+
+    [Fact]
+    public async Task Update_WhenEmployeeIdIsInvalid_ThrowsFormatInvalidException()
+    {
+        // Arrange
+        var request = new EmployeeDto.RequestUpdate("not-a-guid", _fakeRole.Id.ToString());
+
+        // Act & Assert
+        await _repository.Received(0).GetForId<Employee>(Arg.Any<Guid>());
+        await Assert.ThrowsAsync<FormatInvalidException>(
+            () => _employeeService.Update(request));
+    }
+
+    [Fact]
+    public async Task Update_WhenEmployeeDoesNotExist_ThrowsEntityNotFoundException()
+    {
+        // Arrange
+        var request = new EmployeeDto.RequestUpdate(_validId.ToString(), _fakeRole.Id.ToString());
+
+        _repository.GetForId<Employee>(_validId, nameof(Role))
+            .ReturnsNull();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
+            () => _employeeService.Update(request));
+
+        Assert.Contains(_validId.ToString(), exception.Message);
+        await _repository.Received(1).GetForId<Employee>(Arg.Any<Guid>(), nameof(Role));
+    }
+
+    [Fact]
+    public async Task Update_WhenRoleIdIsInvalid_ThrowsFormatInvalidException()
+    {
+        // Arrange
+        var request = new EmployeeDto.RequestUpdate(_validId.ToString(), "not-a-guid");
+
+        _repository.GetForId<Employee>(_validId, nameof(Role))
+            .Returns(_fakeEmployee);
+
+        // Act & Assert
+        await _repository.Received(0).GetForId<Role>(Arg.Any<Guid>());
+        await Assert.ThrowsAsync<FormatInvalidException>(
+            () => _employeeService.Update(request));
+    }
+
+    [Fact]
+    public async Task Update_WhenRoleDoesNotExist_ThrowsBusinessConflictException()
+    {
+        // Arrange
+        var request = new EmployeeDto.RequestUpdate(_validId.ToString(), _fakeRole.Id.ToString());
+
+        _repository.GetForId<Employee>(_validId, nameof(Role))
+            .Returns(_fakeEmployee);
+
+        _repository.GetForId<Role>(_fakeRole.Id)
+            .ReturnsNull();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<BusinessConflictException>(
+            () => _employeeService.Update(request));
         await _repository.Received(1).GetForId<Role>(Arg.Any<Guid>());
         Assert.Equal("The role is not exists", exception.Message);
+    }
+
+    [Fact]
+    public async Task Update_WhenDataIsValid_ReturnsUpdatedEmployeeDto()
+    {
+        // Arrange
+        var newRole = new Role("supervisor", "Supervisor de ventas");
+        var request = new EmployeeDto.RequestUpdate(_validId.ToString(), newRole.Id.ToString());
+
+        _repository.GetForId<Employee>(_validId, nameof(Role))
+            .Returns(_fakeEmployee);
+
+        _repository.GetForId<Role>(newRole.Id)
+            .Returns(newRole);
+
+        // Act
+        var result = await _employeeService.Update(request);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(newRole.Name, result!.role);
+        await _repository.Received(1).Update(Arg.Any<Employee>());
+    }
+
+    // ══════════════════════════════════════════════
+    //  Delete  (CC = 3)
+    // ══════════════════════════════════════════════
+
+    [Fact]
+    public async Task Delete_WhenIdIsInvalid_ThrowsFormatInvalidException()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<FormatInvalidException>(
+            () => _employeeService.Delete("not-a-guid"));
+        await _repository.Received(0).GetForId<Employee>(Arg.Any<Guid>());
+    }
+
+    [Fact]
+    public async Task Delete_WhenEmployeeDoesNotExist_ThrowsEntityNotFoundException()
+    {
+        // Arrange
+        _repository.GetForId<Employee>(_validId)
+            .ReturnsNull();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(
+            () => _employeeService.Delete(_validId.ToString()));
+
+        Assert.Contains(_validId.ToString(), exception.Message);
+        await _repository.Received(1).GetForId<Employee>(Arg.Any<Guid>());
+    }
+
+    [Fact]
+    public async Task Delete_WhenEmployeeExists_CallsRepositoryDelete()
+    {
+        // Arrange
+        _repository.GetForId<Employee>(_validId)
+            .Returns(_fakeEmployee);
+
+        // Act
+        await _employeeService.Delete(_validId.ToString());
+
+        // Assert
+        await _repository.Received(1).Delete(_fakeEmployee);
     }
 }

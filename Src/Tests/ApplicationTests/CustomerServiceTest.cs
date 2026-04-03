@@ -12,13 +12,9 @@ namespace Tests.ApplicationTests;
 
 public class CustomerServiceTest
 {
-    // ──────────────────────────────────────────────
-    //  Infraestructura compartida
-    // ──────────────────────────────────────────────
     private readonly IRepository _repository;
     private readonly CustomersService _customerService;
 
-    // Datos de prueba reutilizables
     private readonly Guid _validId = Guid.NewGuid();
     private readonly Customer _fakeCustomer;
 
@@ -41,9 +37,6 @@ public class CustomerServiceTest
     //  GetAllCustomers  (CC = 2)
     // ══════════════════════════════════════════════
 
-    /// <summary>
-    /// Camino 1: el repositorio devuelve una lista vacía → el servicio retorna colección vacía.
-    /// </summary>
     [Fact]
     public async Task GetAllCustomers_WhenNoCustomersExist_ReturnsEmptyCollection()
     {
@@ -58,9 +51,6 @@ public class CustomerServiceTest
         Assert.Empty(result);
     }
 
-    /// <summary>
-    /// Camino 2: el repositorio devuelve clientes → el servicio los mapea a DTOs correctamente.
-    /// </summary>
     [Fact]
     public async Task GetAllCustomers_WhenCustomersExist_ReturnsMappedDtos()
     {
@@ -83,9 +73,6 @@ public class CustomerServiceTest
     //  GetCustomerById  (CC = 3)
     // ══════════════════════════════════════════════
 
-    /// <summary>
-    /// Camino 1: el id recibido no es un Guid válido → lanza FormatInvalidException.
-    /// </summary>
     [Fact]
     public async Task GetCustomerById_WhenIdIsInvalid_ThrowsFormatInvalidException()
     {
@@ -98,9 +85,6 @@ public class CustomerServiceTest
         await _repository.Received(0).GetForId<Customer>(Arg.Any<Guid>());
     }
 
-    /// <summary>
-    /// Camino 2: el id es válido pero no existe ningún cliente con ese id → lanza EntityNotFoundException.
-    /// </summary>
     [Fact]
     public async Task GetCustomerById_WhenCustomerDoesNotExist_ThrowsEntityNotFoundException()
     {
@@ -113,9 +97,6 @@ public class CustomerServiceTest
         await _repository.Received(1).GetForId<Customer>(Arg.Any<Guid>());
     }
 
-    /// <summary>
-    /// Camino 3: el id es válido y el cliente existe → retorna el DTO con los datos correctos.
-    /// </summary>
     [Fact]
     public async Task GetCustomerById_WhenCustomerExists_ReturnsMappedDto()
     {
@@ -137,9 +118,6 @@ public class CustomerServiceTest
     //  Create  (CC = 2)
     // ══════════════════════════════════════════════
 
-    /// <summary>
-    /// Camino 1: ya existe un cliente con el mismo email o DNI → lanza BusinessConflictException.
-    /// </summary>
     [Fact]
     public async Task Create_WhenEmailOrDniAlreadyExists_ThrowsBusinessConflictException()
     {
@@ -158,9 +136,6 @@ public class CustomerServiceTest
         await _repository.Received(1).GetTheFirstOne<Customer>(Arg.Any<Expression<Func<Customer, bool>>>(), Arg.Any<string[]>());
     }
 
-    /// <summary>
-    /// Camino 2: los datos son únicos → crea el cliente y retorna el DTO con los datos ingresados.
-    /// </summary>
     [Fact]
     public async Task Create_WhenDataIsUnique_ReturnsNewCustomerDto()
     {
@@ -189,9 +164,6 @@ public class CustomerServiceTest
     //  Update  (CC = 3)
     // ══════════════════════════════════════════════
 
-    /// <summary>
-    /// Camino 1: el id recibido no es un Guid válido → lanza FormatInvalidException.
-    /// </summary>
     [Fact]
     public async Task Update_WhenIdIsInvalid_ThrowsFormatInvalidException()
     {
@@ -205,9 +177,6 @@ public class CustomerServiceTest
         await _repository.Received(0).Update(Arg.Any<Customer>());
     }
 
-    /// <summary>
-    /// Camino 2: el id es válido pero no existe el cliente → lanza EntityNotFoundException.
-    /// </summary>
     [Fact]
     public async Task Update_WhenCustomerDoesNotExist_ThrowsEntityNotFoundException()
     {
@@ -223,9 +192,6 @@ public class CustomerServiceTest
         await _repository.Received(1).GetForId<Customer>(Arg.Any<Guid>());
     }
 
-    /// <summary>
-    /// Camino 3: el id es válido y el cliente existe → actualiza y retorna el DTO actualizado.
-    /// </summary>
     [Fact]
     public async Task Update_WhenCustomerExists_ReturnsUpdatedDto()
     {
@@ -247,9 +213,6 @@ public class CustomerServiceTest
     //  Delete  (CC = 3)
     // ══════════════════════════════════════════════
 
-    /// <summary>
-    /// Camino 1: el id recibido no es un Guid válido → lanza FormatInvalidException.
-    /// </summary>
     [Fact]
     public async Task Delete_WhenIdIsInvalid_ThrowsFormatInvalidException()
     {
@@ -262,9 +225,6 @@ public class CustomerServiceTest
         await _repository.Received(0).Delete(Arg.Any<Customer>());
     }
 
-    /// <summary>
-    /// Camino 2: el id es válido pero no existe el cliente → lanza EntityNotFoundException.
-    /// </summary>
     [Fact]
     public async Task Delete_WhenCustomerDoesNotExist_ThrowsEntityNotFoundException()
     {
@@ -277,9 +237,6 @@ public class CustomerServiceTest
         await _repository.Received(1).GetForId<Customer>(Arg.Any<Guid>());
     }
 
-    /// <summary>
-    /// Camino 3: el id es válido y el cliente existe → llama al repositorio para eliminarlo.
-    /// </summary>
     [Fact]
     public async Task Delete_WhenCustomerExists_CallsRepositoryDelete()
     {
