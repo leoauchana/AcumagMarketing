@@ -14,7 +14,7 @@ public class CustomerController : ControllerBase
         _customers = customers;
     }
 
-    [HttpGet("/getAll")]
+    [HttpGet("getAll")]
     public async Task<IActionResult> GetAll()
     {
         var customers = await _customers.GetAllCustomers();
@@ -24,7 +24,7 @@ public class CustomerController : ControllerBase
             count = customers.Count()
         });
     }
-    [HttpGet("/getById/{id}")]
+    [HttpGet("getById/{id}")]
     public async Task<IActionResult> GetById(string id)
     {
         var customer = await _customers.GetCustomerById(id);
@@ -37,7 +37,7 @@ public class CustomerController : ControllerBase
         return Ok(new { newCustomer = customer });
     }
 
-    [HttpDelete("/{id}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
         await _customers.Delete(id);

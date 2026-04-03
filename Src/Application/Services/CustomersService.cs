@@ -36,9 +36,11 @@ public class CustomersService : ICustomersService
 
     public async Task<CustomerDto.Response?> Create(CustomerDto.Request customerDto)
     {
-        var customerFound = await _repository.GetTheFirstOne<Customer>(c => c.Email.Value.Equals(customerDto.email) || c.Dni.Value.Equals(customerDto.dni));
-        if(customerDto == null) throw new BusinessConflictException("The email or dni already exists");
-        var newCustomer = new Customer(customerDto.firstName, customerDto.lastName, Email.Create(customerDto.email),
+        var email = Email.Create(customerDto.email);
+        var dni = Dni.Create(customerDto.dni);
+        var customerFound = await _repository.GetTheFirstOne<Customer>(c => c.Email == email || c.Dni == dni);
+        if(customerFound != null) throw new BusinessConflictException("The email or dni already exists");
+        var newCustomer = new Customer(customerDto!.firstName, customerDto.lastName, Email.Create(customerDto.email),
             Dni.Create(customerDto.dni), new Domicilie(customerDto.street, customerDto.city,
                 customerDto.number, customerDto.zipCode), customerDto.phoneNumber);
         await _repository.Add(newCustomer);

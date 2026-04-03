@@ -42,7 +42,7 @@ public class EmployeeController : ControllerBase
         return Ok(new
         { employeeFound = employeeFound });
     }
-
+    // TODO: Add role for test the endpoint
     [HttpPatch]
     public async Task<IActionResult> Update([FromBody] EmployeeDto.RequestUpdate employeeDto)
     {
@@ -51,6 +51,7 @@ public class EmployeeController : ControllerBase
             new { employeeUpdated = employeeUpdated });
     }
 
+    // TODO: Query about the delete logic
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
