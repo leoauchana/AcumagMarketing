@@ -22,7 +22,7 @@ public class LocalFileStorage : IFileStorage
         var nameFile = $"{Guid.NewGuid()}{Path.GetExtension(name)}";
         var pathComplete = Path.Combine(storagePath, nameFile);
         using var fileStream = new FileStream(pathComplete, FileMode.Create);
-        await fileStream.CopyToAsync(file);
+        await file.CopyToAsync(fileStream);
         return nameFile;
     }
 }

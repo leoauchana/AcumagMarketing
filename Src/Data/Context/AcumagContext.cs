@@ -145,7 +145,7 @@ public class AcumagContext : DbContext
             .IsRequired();
         modelBuilder.Entity<User>()
             .Property(u => u.Password)
-            .HasMaxLength(20)
+            .HasMaxLength(65)
             .IsRequired();
         modelBuilder.Entity<User>()
             .HasOne(u => u.Employee)

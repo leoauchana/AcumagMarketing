@@ -1,6 +1,9 @@
 using Api.Middlewares;
 using Application;
 using Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Transversal;
 using Transversal.Configurations;
 
@@ -27,6 +30,28 @@ builder.Services.AddControllers();
 builder.Services.AddApplicationServices();
 builder.Services.AddDataServices();
 builder.Services.AddTransversalServices();
+
+var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions!.Key)),
+        ValidateIssuer = true,
+        ValidIssuer = jwtOptions.Issuer,
+        ValidateAudience = true,
+        ValidAudience = jwtOptions.Audience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
 var corsOptions = builder.Configuration.GetSection("Cors").Get<CorsOptions>();
 builder.Services.AddCors(options =>
 {

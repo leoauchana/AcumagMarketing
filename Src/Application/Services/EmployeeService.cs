@@ -45,9 +45,10 @@ public class EmployeeService : IEmployeeService
         var idRolee = employeeDto.idRole.ValidateId();
         var roleFound = await _repository.GetForId<Role>(idRolee);
         if (roleFound == null) throw new BusinessConflictException("The role is not exists");
+        var passhordHash = _passwordHasher.Hash(employeeDto.password);
         var newEmployee = new Employee(employeeDto.firstName, employeeDto.lastName, Email.Create(employeeDto.email),
             Dni.Create(employeeDto.dni), new Domicilie(employeeDto.street, employeeDto.city,
-                employeeDto.number, employeeDto.zipCode), roleFound, new User(employeeDto.userName, employeeDto.password));
+                employeeDto.number, employeeDto.zipCode), roleFound, new User(employeeDto.userName, passhordHash));
         await _repository.Add(newEmployee);
         return new EmployeeDto.Response(newEmployee.Id.ToString(), newEmployee.FirstName, newEmployee.LastName, newEmployee.Email.Value, newEmployee.Dni.Value,
             newEmployee.Domicilie.City, newEmployee.Domicilie.Street, newEmployee.Domicilie.Number, newEmployee.Role.Name);

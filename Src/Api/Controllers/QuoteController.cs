@@ -1,5 +1,6 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -14,10 +15,11 @@ public class QuoteController : ControllerBase
     {
         _quoteService = quoteService;
     }
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Register([FromForm] QuoteOrderDto.RequestFormFile newQuote)
     {
-        var idUser = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+        var idUser = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (idUser == null) return BadRequest("User can not getter");
         var quoteDto = new QuoteOrderDto.RequestStream(newQuote.quoteFile.OpenReadStream(), newQuote.quoteFile.FileName, newQuote.quoteFile.ContentType
             , newQuote.idCustomer);

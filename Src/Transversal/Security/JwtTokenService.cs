@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Domain.Entities;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Transversal.Configurations;
 using Transversal.Interfaces;
@@ -11,9 +12,9 @@ public class JwtTokenService : ITokenService
 {
     private readonly JwtOptions _jwtOptions;
     private readonly ClaimsFactory _claimsFactory;
-    public JwtTokenService(JwtOptions jwtOptions, ClaimsFactory claimsFactory)
+    public JwtTokenService(IOptions<JwtOptions> jwtOptions, ClaimsFactory claimsFactory)
     {
-        _jwtOptions = jwtOptions;
+        _jwtOptions = jwtOptions.Value;
         _claimsFactory  = claimsFactory;
     }
     public string GenerateToken(User user)
