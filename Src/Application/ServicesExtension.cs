@@ -11,7 +11,7 @@ public static class ServicesExtension
         services.AddScoped<ICustomersService, CustomersService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IEmployeeService, EmployeeService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IQuoteService, QuoteService>();
     }
 }
